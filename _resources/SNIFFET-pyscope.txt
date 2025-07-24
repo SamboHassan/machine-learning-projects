@@ -1,0 +1,47 @@
+SCOPE
+Python’s scopes—the places where variables are defined and looked
+up. 
+
+Like module files, scopes help prevent name clashes 
+across your program’s code: 
+
+names defined in one program unit don’t interfere with names in another.
+
+Just about everything related to names, including scope classification, 
+happens at assignment time in Python. 
+
+As we’ve seen, names in Python spring into existence when
+they are first assigned values, and they must be assigned before they are used. 
+
+Because names are not declared ahead of time, 
+Python uses the location of the assignment of a 
+name to associate it with (i.e., bind it to) a particular namespace. 
+
+In other words, the
+place where you assign a name in your source code determines the namespace it 
+will live in, and hence its scope of visibility.
+
+Besides packaging code for reuse, functions add an extra namespace layer 
+to your programs to minimize the potential for collisions among variables 
+of the same name—by default, all names assigned inside a function are associated with that function’s namespace,
+and no other.
+
+In all cases, the scope of a variable (where it can be used) is always 
+determined by where
+it is assigned in your source code and has nothing to do 
+with which functions call which.
+
+The net
+effect is that function scopes help to avoid name clashes in your programs and help to
+make functions more self-contained program units—their code need not be concerned
+with names used elsewhere.
+
+
+Technically, the interactive prompt
+is a module named __main__ that prints results and doesn’t save its code; in all other
+ways, though, it’s like the top level of a module file.
+
+
+-------------------------------------------
+Functions define a local scope and modules define a global scope with the 
+following properties:
