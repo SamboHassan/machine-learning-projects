@@ -1,0 +1,32 @@
+
+pd.read_csv('https://raw.githubusercontent.com/justmarkham/pandas-videos/master/data/u.user', sep='|')
+
+
+
+1. Program Design: Minimize Global Variables
+
+Although there are times when globals are useful, variables assigned in
+a def are local by default because that is normally the best policy.
+
+2. Program Design: Minimize Cross-File Changes
+
+The problem with the assignment to first.X, however, is that it is far too implicit: 
+whoever’s charged with maintaining or reusing the first module probably has no 
+clue that some arbitrarily far-removed module on the import chain can change X out 
+from under him or her at runtime.
+
+
+Multithreading runs function calls in parallel with the rest of the program
+
+Because all threaded functions run in the same process, global scopes often serve as one form of shared
+memory between them (threads may share both names in global scopes, as well as objects in a process’s
+memory space).
+
+Threading is commonly used for long-running tasks in GUIs, to implement nonblocking
+operations in general and to maximize CPU capacity
+
+
+
+That’s the main point about modules: by segregating variables on a per-file basis, 
+they avoid name collisions across files, in much the same way that local 
+variables avoid name clashes across functions.
