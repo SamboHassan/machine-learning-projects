@@ -1,0 +1,472 @@
+>>> import os
+>>> F = os.popen('dir') # Read line by line
+>>> F.readline()
+' Volume in drive C has no label.\n'
+>>> F = os.popen('dir') # Read by sized blocks
+>>> F.read(50)
+' Volume in drive C has no label.\n Volume Serial Nu'
+>>> os.popen('dir').readlines()[0] # Read all lines: index
+' Volume in drive C has no label.\n'
+>>> os.popen('dir').read()[:50] # Read all at once: slice
+' Volume in drive C has no label.\n Volume Serial Nu'
+
+>>> for line in os.popen('dir'): # File line iterator loop
+... print(line.rstrip())
+...
+ Volume in drive C has no label.
+ Volume Serial Number is D093-D1F7
+...and so on...
+
+>>> os.system('systeminfo')
+...output in console, popup in IDLE...
+0
+>>> for line in os.popen('systeminfo'): print(line.rstrip())
+Host Name: MARK-VAIO
+OS Name: Microsoft Windows 7 Professional
+OS Version: 6.1.7601 Service Pack 1 Build 7601
+...lots of system information text...
+
+
+# Formatted, limited display
+>>> for (i, line) in enumerate(os.popen('systeminfo')):
+... if i == 4: break
+... print('%05d) %s' % (i, line.rstrip()))
+...
+00000)
+00001) Host Name: MARK-VAIO
+00002) OS Name: Microsoft Windows 7 Professional
+00003) OS Version: 6.1.7601 Service Pack 1 Build 7601
+# Parse for specific lines, case neutral
+>>> for line in os.popen('systeminfo'):
+... parts = line.split(':')
+... if parts and parts[0].lower() == 'system type':
+... print(parts[1].strip())
+
+
+# awk emulation: extract column 7 from whitespace-delimited file
+for val in [line.split()[6] for line in open('input.txt')]:
+ print(val)
+# Same, but more explicit code that retains result
+col7 = []
+for line in open('input.txt'):
+ cols = line.split()
+ col7.append(cols[6])
+for item in col7: print(item)
+# Same, but a reusable function (see next part of book)
+def awker(file, col):
+    return [line.rstrip().split()[col-1] for line in open(file)]
+print(awker('input.txt', 7)) # List of strings
+print(','.join(awker('input.txt', 7))) # Put commas between
+
+
+
+
+This interface is most of what we call the iteration protocol in Python. Any object with
+a __next__ method to advance to a next result, which raises StopIteration at the end
+of the series of results, is considered an iterator in Python.
+
+
+>>> for line in open('script2.py'): # Use file iterators to read by lines
+... print(line.upper(), end='') # Calls __next__, catches StopIteration
+...
+IMPORT SYS
+PRINT(SYS.PATH)
+X = 2
+PRINT(X ** 32)
+
+
+>>> for line in open('script2.py').readlines():
+... print(line.upper(), end='')
+...
+IMPORT SYS
+PRINT(SYS.PATH)
+X = 2
+PRINT(X ** 32)
+This readlines technique still works but is not considered the best practice today and
+performs poorly in terms of memory usage.
+
+
+In fact, because this version really does load
+the entire file into memory all at once, it will not even work for files too big to fit into
+the memory space available on your computer.
+
+
+To simplify manual iteration code, Python 3.X also provides a built-in function, next,
+that automatically calls an object’s __next__ method.
+
+
+When
+the for loop begins, it first obtains an iterator from the iterable object by passing it to
+the iter built-in function; the object returned by iter in turn has the required next
+method.
+
+
+
+>>> L = [1, 2, 3]
+>>> I = iter(L) # Obtain an iterator object from an iterable
+>>> I.__next__() # Call iterator's next to advance to next item
+
+
+>>> I = iter(L) # Manual iteration: what for loops usually do
+>>> while True:
+... try: # try statement catches exceptions
+... X = next(I) # Or call I.__next__ in 3.X
+... except StopIteration:
+... break
+... print(X ** 2, end=' ')
+...
+1 4 9
+
+
+>>> E = enumerate('spam') # enumerate is an iterable too
+>>> E
+<enumerate object at 0x00000000029B7678>
+>>> I = iter(E)
+>>> next(I) # Generate results with iteration protocol
+(0, 's')
+>>> next(I) # Or use list to force generation to run
+(1, 'p')
+>>> list(enumerate('spam'))
+[(0, 's'), (1, 'p'), (2, 'a'), (3, 'm')]
+
+
+
+List Comprehensions: A First Detailed Look
+
+>>> L = [x + 10 for x in L]
+>>> L
+[21, 22, 23, 24, 25]
+
+
+>>> f = open('script2.py')
+>>> lines = f.readlines()
+>>> lines
+['import sys\n', 'print(sys.path)\n', 'x = 2\n', 'print(x ** 32)\n']
+
+
+>>> lines = [line.rstrip() for line in lines]
+>>> lines
+['import sys', 'print(sys.path)', 'x = 2', 'print(x ** 32)']
+
+
+
+>>> [('sys' in line, line[:5]) for line in open('script2.py')]
+[(True, 'impor'), (True, 'print'), (False, 'x = 2'), (False, 'print')]
+
+
+---------------- Extended List Comprehension Syntax
+
+
+>>> lines = [line.rstrip() for line in open('script2.py') if line[0] == 'p']
+>>> lines
+['print(sys.path)', 'print(x ** 32)']
+
+>>> res = []
+>>> for line in open('script2.py'):
+... if line[0] == 'p':
+... res.append(line.rstrip())
+...
+>>> res
+['print(sys.path)', 'print(x ** 32)']
+
+
+>>> [line.rstrip() for line in open('script2.py') if line.rstrip()[-1].isdigit()]
+['x = 2']
+
+>>> fname = r'd:\books\5e\lp5e\draft1typos.txt'
+>>> len(open(fname).readlines()) # All lines
+263
+>>> len([line for line in open(fname) if line.strip() != '']) # Nonblank lines
+185
+
+-------------------------- Nested loops: for
+
+they may contain nested loops, coded as a series of for clauses. In fact, their full syntax
+allows for any number of for clauses, each of which can have an optional associated
+if clause.
+
+
+>>> [x + y for x in 'abc' for y in 'lmn']
+['al', 'am', 'an', 'bl', 'bm', 'bn', 'cl', 'cm', 'cn']
+
+
+>>> res = []
+>>> for x in 'abc':
+... for y in 'lmn':
+... res.append(x + y)
+...
+>>> res
+['al', 'am', 'an', 'bl', 'bm', 'bn', 'cl', 'cm', 'cn']
+
+
+
+>>> sorted(open('script2.py'))
+['import sys\n', 'print(sys.path)\n', 'print(x ** 32)\n', 'x = 2\n']
+>>> list(zip(open('script2.py'), open('script2.py')))
+[('import sys\n', 'import sys\n'), ('print(sys.path)\n', 'print(sys.path)\n'),
+('x = 2\n', 'x = 2\n'), ('print(x ** 32)\n', 'print(x ** 32)\n')]
+>>> list(enumerate(open('script2.py')))
+[(0, 'import sys\n'), (1, 'print(sys.path)\n'), (2, 'x = 2\n'),
+(3, 'print(x ** 32)\n')]
+>>> list(filter(bool, open('script2.py'))) # nonempty=True
+['import sys\n', 'print(sys.path)\n', 'x = 2\n', 'print(x ** 32)\n']
+>>> import functools, operator
+>>> functools.reduce(operator.add, open('script2.py'))
+'import sys\nprint(sys.path)\nx = 2\nprint(x ** 32)\n'
+
+
+
+>>> a, b, c, d = open('script2.py') # Sequence assignment
+>>> a, d
+('import sys\n', 'print(x ** 32)\n')
+>>> a, *b = open('script2.py') # 3.X extended form
+>>> a, b
+('import sys\n', ['print(sys.path)\n', 'x = 2\n', 'print(x ** 32)\n'])
+>>> 'y = 2\n' in open('script2.py') # Membership test
+False
+>>> 'x = 2\n' in open('script2.py')
+True
+
+
+
+---------------------The map, zip, and filter Iterables
+
+Like range, the map, zip, and filter built-ins also become iterables in 3.X to conserve
+space, rather than producing a result list all at once in memory.
+
+Unlike range, though, they are their own iterators—after you step through their 
+results once, they are exhausted.
+
+>>> M = map(abs, (-1, 0, 1)) # map returns an iterable, not a list
+>>> M
+<map object at 0x00000000029B75C0>
+>>> next(M) # Use iterator manually: exhausts results
+1 # These do not support len() or indexing
+>>> next(M)
+0
+>>> next(M)
+1
+>>> next(M)
+StopIteration
+>>> for x in M: print(x) # map iterator is now empty: one pass only
+
+>>> M = map(abs, (-1, 0, 1)) # Make a new iterable/iterator to scan again
+>>> for x in M: print(x) # Iteration contexts auto call next()
+
+>>> list(map(abs, (-1, 0, 1))) # Can force a real list if needed
+[1, 0, 1]
+
+>>> Z = zip((1, 2, 3), (10, 20, 30)) # Manual iteration (iter() not needed)
+>>> next(Z)
+(1, 10)
+>>> next(Z)
+(2, 20)
+
+
+>>> [x for x in ['spam', '', 'ni'] if bool(x)]
+['spam', 'ni']
+>>> [x for x in ['spam', '', 'ni'] if x]
+['spam', 'ni']
+
+-------------------------Multiple Versus Single Pass Iterators
+
+It’s important to see how the range object differs from the built-ins described in this
+section—it supports len and indexing, it is not its own iterator
+
+>>> R = range(3) # range allows multiple iterators
+>>> next(R)
+TypeError: range object is not an iterator
+>>> I1 = iter(R)
+>>> next(I1)
+0
+>>> next(I1)
+1
+>>> I2 = iter(R) # Two iterators on one range
+>>> next(I2)
+0
+>>> next(I1) # I1 is at a different spot than I2
+2
+
+
+>>> Z = zip((1, 2, 3), (10, 11, 12))
+>>> I1 = iter(Z)
+>>> I2 = iter(Z) # Two iterators on one zip
+>>> next(I1)
+(1, 10)
+>>> next(I1)
+(2, 11)
+>>> next(I2) # (3.X) I2 is at same spot as I1!
+(3, 12)
+>>> M = map(abs, (-1, 0, 1)) # Ditto for map (and filter)
+>>> I1 = iter(M); I2 = iter(M)
+>>> print(next(I1), next(I1), next(I1))
+1 0 1
+>>> next(I2) # (3.X) Single scan is exhausted!
+StopIteration
+
+
+>>> R = range(3) # But range allows many iterators
+>>> I1, I2 = iter(R), iter(R)
+>>> [next(I1), next(I1), next(I1)]
+[0 1 2]
+>>> next(I2) # Multiple active scans, like 2.X lists
+0
+
+
+When we code our own iterable objects with classes later in the book (Chapter 30),
+we’ll see that multiple iterators are usually supported by returning new objects for the
+iter call; a single iterator generally means an object returns itself.
+
+
+>>> D
+{'a': 1, 'b': 2, 'c': 3}
+>>> for k in sorted(D.keys()): print(k, D[k], end=' ')
+...
+a 1 b 2 c 3
+>>> for k in sorted(D): print(k, D[k], end=' ') # "Best practice" key sorting
+...
+a 1 b 2 c 3
+
+
+• User-defined functions can be turned into iterable generator functions, with
+yield statements.
+• List comprehensions morph into iterable generator expressions when coded in
+parentheses.
+• User-defined classes are made iterable with __iter__ or __getitem__ operator overloading.
+
+
+
+---------------------------------Python DOCSYS 
+
+>>> [a for a in dir(list) if not a.startswith('__')]
+['append', 'clear', 'copy', 'count', 'extend', 'index', 'insert', 'pop',
+'remove', 'reverse', 'sort']
+
+>>> [a for a in dir(dict) if not a.startswith('__')]
+['clear', 'copy', 'fromkeys', 'get', 'items', 'keys', 'pop', 'popitem',
+'setdefault', 'update', 'values']
+
+
+>>> def dir1(x): return [a for a in dir(x) if not a.startswith('__')] # See Part IV
+...
+>>> dir1(tuple)
+['count', 'index']
+
+Notice that you can list built-in type attributes by passing a type name to dir instead
+of a literal:
+>>> dir(str) == dir('') # Same result, type name or literal
+True
+>>> dir(list) == dir([])
+True
+
+
+--------------------------Docstrings: __doc__
+
+>>> import docstrings
+16
+ function documentation
+ can we have your liver then?
+>>> print(docstrings.__doc__)
+Module documentation
+Words Go Here
+>>> print(docstrings.square.__doc__)
+
+>>> print(docstrings.Employee.__doc__)
+ class documentation
+
+
+build-ins Doc strings 
+
+__doc__ string:
+>>> import sys
+>>> print(sys.__doc__)
+This module provides access to some objects used or maintained by the
+interpreter and to functions that interact strongly with the interpreter.
+Dynamic objects:
+argv -- command line arguments; argv[0] is the script pathname if known
+path -- module search path; path[0] is the script directory, else ''
+modules -- dictionary of loaded modules
+...more text omitted...
+
+
+-----------------------PyDoc: The help Function
+
+>>> import sys
+>>> help(sys.getrefcount)
+Help on built-in function getrefcount in module sys:
+getrefcount(...)
+ getrefcount(object) -> integer
+ Return the reference count of object. The count returned is generally
+ one higher than you might expect, because it includes the (temporary)
+ reference as an argument to getrefcount().
+
+>>> help(str.replace)
+Help on method_descriptor:
+replace(...)
+ S.replace (old, new[, count]) -> str
+ Return a copy of S with all occurrences of substring
+ ...more omitted...
+>>> help(''.replace)
+...similar to prior result...
+>>> help(ord)
+Help on built-in function ord in module builtins:
+
+
+---------------------------------PyDoc: HTML Reports
+
+c:\code> python -m pydoc -b
+Server ready at http://localhost:62135/
+Server commands: [b]rowser, [q]uit
+server> q
+Server stopped
+c:\code> py −3 -m pydoc -b
+Server ready at http://localhost:62144/
+Server commands: [b]rowser, [q]uit
+server> q
+Server stopped
+c:\code> C:\python33\python -m pydoc -b
+Server ready at http://localhost:62153/
+Server commands: [b]rowser, [q]uit
+server> q
+Server stopped
+
+
+Beyond docstrings: Sphinx
+If you’re looking for a way to document your Python system in a more sophisticated
+way, you may wish to check out Sphinx (currently at http://sphinx-doc.org).
+
+
+• def is executable code
+• def creates an object and assigns it to a name
+• lambda creates an object but returns it as a result
+• return sends a result object back to the caller.
+• yield sends a result object back to the caller, but remembers where it left
+off.
+• nonlocal declares enclosing function variables that are to be assigned. Similarly, the nonlocal statement added in Python 3.X allows a function to assign a
+name that exists in the scope of a syntactically enclosing def statement. This allows
+enclosing functions to serve as a place to retain state—information remembered
+between function calls—without using shared global names.
+• Arguments are passed by assignment (object reference).
+• Arguments are passed by position, unless you say otherwise.
+
+
+polymorphism, means that the meaning of an operation depends on the objects being 
+operated upon. Because it’s a dynamically typed language, polymorphism runs rampant 
+in Python. In fact, every operation is a polymorphic operation in Python:
+printing, indexing, the * operator, and much more.
+
+
+
+and assignments bind names to scopes.
+
+
+
+A return without a value
+simply returns to the caller (and sends back None, the default result).
+
+
+In fact,
+it’s legal (and even occasionally useful) to nest def statements inside if statements,
+while loops, and even other defs. In typical operation, def statements are coded in
+module files and are naturally run to generate functions when the module file they
+reside in is first imported.
