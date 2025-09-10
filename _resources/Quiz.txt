@@ -1,0 +1,154 @@
+
+The Zen of Python, by Tim Peters
+
+Beautiful is better than ugly.
+Explicit is better than implicit.
+Simple is better than complex.
+Complex is better than complicated.
+Flat is better than nested.
+Sparse is better than dense.
+Readability counts.
+Special cases aren't special enough to break the rules.
+Although practicality beats purity.
+Errors should never pass silently.
+Unless explicitly silenced.
+In the face of ambiguity, refuse the temptation to guess.
+There should be one-- and preferably only one --obvious way to do it.
+Although that way may not be obvious at first unless you're Dutch.
+Now is better than never.
+Although never is often better than *right* now.
+If the implementation is hard to explain, it's a bad idea.
+If the implementation is easy to explain, it may be a good idea.
+Namespaces are one honking great idea -- let's do more of those!
+
+
+
+
+
+
+SCOPE BASICS
+
+Test Your Knowledge: Quiz
+1. What is the output of the following code, and why?
+>>> X = 'Spam'
+>>> def func():
+ print(X)
+>>> func()
+2. What is the output of this code, and why?
+>>> X = 'Spam'
+>>> def func():
+ X = 'NI!'
+>>> func()
+>>> print(X)
+3. What does this code print, and why?
+>>> X = 'Spam'
+>>> def func():
+ X = 'NI'
+ print(X)
+>>> func()
+>>> print(X)
+
+
+4. What output does this code produce? Why?
+>>> X = 'Spam'
+>>> def func():
+ global X
+ X = 'NI'
+>>> func()
+>>> print(X)
+5. What about this code—what’s the output, and why?
+>>> X = 'Spam'
+>>> def func():
+ X = 'NI'
+ def nested():
+ print(X)
+ nested()
+>>> func()
+>>> X
+6. How about this example: what is its output in Python 3.X, and why?
+>>> def func():
+ X = 'NI'
+ def nested():
+ nonlocal X
+ X = 'Spam'
+ nested()
+ print(X)
+>>> func()
+7. Name three or more ways to retain state information in a Python function.
+Test Your Knowledge: Answers
+1. The output here is 'Spam', because the function references a global variable in the
+enclosing module (because it is not assigned in the function, it is considered global).
+2. The output here is 'Spam' again because assigning the variable inside the function
+makes it a local and effectively hides the global of the same name. The print statement finds the variable unchanged in the global (module) scope.
+3. It prints 'NI' on one line and 'Spam' on another, because the reference to the variable within the function finds the assigned local and the reference in the print
+statement finds the global.
+4. This time it just prints 'NI' because the global declaration forces the variable assigned inside the function to refer to the variable in the enclosing global scope.
+5. The output in this case is again 'NI' on one line and 'Spam' on another, because
+the print statement in the nested function finds the name in the enclosing function’s local scope, and the print at the end finds the variable in the global scope.
+
+6. This example prints 'Spam', because the nonlocal statement (available in Python
+3.X but not 2.X) means that the assignment to X inside the nested function changes
+X in the enclosing function’s local scope. Without this statement, this assignment
+would classify X as local to the nested function, making it a different variable; the
+code would then print 'NI' instead.
+7. Although the values of local variables go away when a function returns, you can
+make a Python function retain state information by using shared global variables,
+enclosing function scope references within nested functions, or using default argument values. Function attributes can sometimes allow state to be attached to the
+function itself, instead of looked up in scopes. Another alternative, using classes
+and OOP, sometimes supports state retention better than any of the scope-based
+techniques because it makes it explicit with attribute assignments; we’ll explore
+this option in Part VI.
+
+
+ARGUMENTS PASSING
+
+Test Your Knowledge: Quiz
+In most of this quiz’s questions, results may vary slightly in 2.X—with enclosing parentheses and commas when multiple values are printed. To match the 3.X answers exactly
+in 2.X, import print_function from __future__ before starting.
+1. What is the output of the following code, and why?
+>>> def func(a, b=4, c=5):
+ print(a, b, c)
+>>> func(1, 2)
+2. What is the output of this code, and why?
+>>> def func(a, b, c=5):
+ print(a, b, c)
+>>> func(1, c=3, b=2)
+3. How about this code: what is its output, and why?
+>>> def func(a, *pargs):
+ print(a, pargs)
+>>> func(1, 2, 3)
+4. What does this code print, and why?
+>>> def func(a, **kargs):
+ print(a, kargs)
+>>> func(a=1, c=3, b=2)
+5. What gets printed by this, and why?
+>>> def func(a, b, c=3, d=4): print(a, b, c, d)
+>>> func(1, *(5, 6))
+6. One last time: what is the output of this code, and why?
+>>> def func(a, b, c): a = 2; b[0] = 'x'; c['a'] = 'y'
+>>> l=1; m=[1]; n={'a':0}
+>>> func(l, m, n)
+>>> l, m, n
+
+
+
+Test Your Knowledge: Answers
+1. The output here is 1 2 5, because 1 and 2 are passed to a and b by position, and
+c is omitted in the call and defaults to 5.
+2. The output this time is 1 2 3: 1 is passed to a by position, and b and c are passed
+2 and 3 by name (the left-to-right order doesn’t matter when keyword arguments
+are used like this).
+3. This code prints 1 (2, 3), because 1 is passed to a and the *pargs collects the
+remaining positional arguments into a new tuple object. We can step through the
+extra positional arguments tuple with any iteration tool (e.g., for arg in
+pargs: ...).
+4. This time the code prints 1 {'b': 2, 'c': 3}, because 1 is passed to a by name
+and the **kargs collects the remaining keyword arguments into a dictionary. We
+could step through the extra keyword arguments dictionary by key with any iteration tool (e.g., for key in kargs: ...). Note that the order of the dictionary’s
+keys may vary per Python and other variables.
+5. The output here is 1 5 6 4: the 1 matches a by position, 5 and 6 match b and c by
+*name positionals (6 overrides c’s default), and d defaults to 4 because it was not
+passed a value.
+6. This displays (1, ['x'], {'a': 'y'})—the first assignment in the function doesn’t
+impact the caller, but the second two do because they change passed-in mutable
+objects in place.
