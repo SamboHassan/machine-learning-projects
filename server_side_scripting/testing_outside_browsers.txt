@@ -1,0 +1,35 @@
+C:\...\PP4E\Internet\Web> python
+ >>> from urllib.request import urlopen
+ >>> reply = urlopen('http://localhost/cgi-bin/tutor3.py?user=Brian').read()
+>>> reply
+b'<TITLE>tutor3.py</TITLE>\n<H1>Greetings</H1>\n<HR>\n<P>Hello, Brian.</P>\n<HR>\n'
+>>> print(reply.decode())
+<TITLE>tutor3.py</TITLE>
+<H1>Greetings</H1>
+<HR>
+<P>Hello, Brian.</P>
+<HR>
+>>> url   = 'http://localhost/cgi-bin/tutor3.py'
+>>> conn  = urlopen(url)
+>>> reply = conn.read()
+>>> print(reply.decode())
+<TITLE>tutor3.py</TITLE>
+<H1>Greetings</H1>
+<HR>
+<P>Who are you?</P>
+<HR>
+
+
+
+>>> from urllib.request import urlopen
+ >>> from urllib.parse   import urlencode
+ >>> params = urlencode({'user': 'Brian'})
+ >>> params
+ 'user=Brian'
+ >>>
+ >>> print(urlopen('http://localhost/cgi-bin/tutor3.py', params).read().decode())
+ <TITLE>tutor3.py</TITLE>
+ <H1>Greetings</H1>
+ <HR>
+ <P>Hello, Brian.</P>
+ <HR>
